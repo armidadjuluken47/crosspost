@@ -1,0 +1,4 @@
+# Install system ffmpeg for web + worker (Railway/Nixpacks).
+# resolveFfmpegPath() falls back to `which ffmpeg` when ffmpeg-static is unavailable.
+[phases.setup]
+aptPkgs = ["ffmpeg"]

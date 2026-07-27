@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Syne", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Creatr Signature Color Palette - Now adapted for light-mode lavenderblush */
+  --color-creatr-pink: #f487b7;
+  --color-creatr-gold: #C28E2E; /* slightly darkened gold for better visual contrast */
+  --color-creatr-rose: #E1757B;
+  --color-creatr-dark: #fff0f5; /* lavenderblush base */
+  --color-creatr-card: #f8e5eb; /* beautiful soft pink card backgrounds */
+  --color-creatr-border: #ebd0d9; /* subtle dark border for separation */
+}
+
+/* Global Root styling - force overall background to lavenderblush & text to a readable brand dark */
+:root, body, #app-root-container {
+  background-color: #FFF0F5 !important; /* Perfect Lavenderblush base */
+  color: #381B26 !important; /* Rich brand dark-mauve for perfect typography pairing */
+}
+
+/* Scrollbar customizations with light theme touch */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(244, 135, 183, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(142, 107, 122, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(142, 107, 122, 0.4);
+}
+
+/* --- LIGHT INTENT THEMATIC OVERRIDES --- */
+
+/* App level layout backdrops override to lavenderblush */
+.bg-\[\#0A0807\],
+.bg-\[\#0A0807\]\/10,
+.bg-\[\#0C0A09\],
+.bg-\[\#0B0908\],
+.bg-\[\#090807\],
+.bg-\[\#070505\]\/40,
+main.bg-slate-900\/5,
+main.bg-slate-900\/10 {
+  background-color: #FFF0F5 !important;
+}
+
+/* Header, components and container panel backdrops */
+.bg-\[\#13100E\],
+.bg-\[\#110E0D\],
+.bg-\[\#120F0D\],
+.bg-\[\#120F0D\]\/40,
+.bg-\[\#120F0D\]\/45,
+.bg-\[\#120F0D\]\/25,
+.bg-\[\#15110F\],
+.bg-\[\#14100E\],
+.bg-\[\#1A1412\],
+.bg-\[\#171412\],
+.bg-\[\#1B1713\],
+.bg-\[\#1B1714\],
+.bg-\[\#1B1613\], /* Bottom select-play panels of the cards */
+.bg-\[\#080605\],
+.bg-slate-950,
+.bg-black\/40 {
+  background-color: #FAF0F3 !important; /* soft, plush off-white lavender shading */
+}
+
+/* Inputs, text fields, search boxes and active elements */
+input, textarea, select,
+.bg-\[\#1D1714\],
+.bg-\[\#1D1714\]\/20,
+.bg-\[\#1E1916\]\/40,
+.bg-\[\#1E1916\]\/50,
+.bg-\[\#1E1714\],
+.bg-\[\#1C1815\]\/30,
+.bg-\[\#261E1A\] {
+  background-color: #F8E3EC !important; /* inset highlighting card color */
+  color: #381B26 !important;
+}
+
+/* Ensure overlay labels and badges on top of media/images are dark pods with high contrast crisp white text */
+.absolute.bg-\[\#0C0A09\]\/80,
+.absolute.bg-black\/80,
+.absolute.bg-black\/45,
+.absolute.bg-black\/85,
+.absolute.bg-gradient-to-t {
+  background-color: rgba(56, 27, 38, 0.75) !important;
+}
+
+.absolute.bg-\[\#0C0A09\]\/80,
+.absolute.bg-\[\#0C0A09\]\/80 *,
+.absolute.bg-black\/80,
+.absolute.bg-black\/80 *,
+.absolute.bg-black\/45,
+.absolute.bg-black\/45 *,
+.absolute.bg-black\/85,
+.absolute.bg-black\/85 *,
+.absolute.bg-gradient-to-t,
+.absolute.bg-gradient-to-t * {
+  color: #FFFFFF !important;
+}
+
+/* Successful state highlights under a light theme */
+.bg-\[\#121B15\] {
+  background-color: #E2F5EA !important; /* Beautiful mint green background */
+  color: #15803d !important;
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+.bg-\[\#121B15\] * {
+  color: #15803d !important;
+}
+
+/* Amber pending warns backgrounds */
+.bg-\[\#2E2015\] {
+  background-color: #FEF3C7 !important; /* Beautiful light amber */
+  color: #B45309 !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+}
+.bg-\[\#2E2015\] * {
+  color: #B45309 !important;
+}
+
+/* Subtle placeholder styling */
+input::placeholder, textarea::placeholder {
+  color: #8C6A78 !important;
+  opacity: 0.7;
+}
+
+/* Sidebar Navigation Items selection highlight overrides */
+.bg-gradient-to-r.from-creatr-pink\/15.via-creatr-gold\/5.to-transparent {
+  background-image: linear-gradient(to right, rgba(244, 135, 179, 0.25), rgba(242, 154, 191, 0.08), transparent) !important;
+}
+
+/* Sidebar element hovering hover class */
+.hover\:bg-\[\#1C1815\]\/60:hover {
+  background-color: #F5DFE7 !important;
+}
+
+/* Active buttons and state highlights */
+.hover\:bg-\[\#1E1916\]:hover {
+  background-color: #F0D5E0 !important;
+}
+
+.hover\:bg-\[\#1C1815\]:hover {
+  background-color: #F0D5E0 !important;
+}
+
+/* Border overrides - replaced with cohesive lighter plum borders instead of harsh dark lines */
+.border-\[\#2B231F\],
+.border-\[\#26211C\],
+.border-\[\#26211C\]\/50,
+.border-\[\#241F1A\]\/40,
+.border-\[\#2B231D\],
+.border-\[\#3E2E25\],
+.border-\[\#3A2E28\],
+.border-creatr-border,
+.border-creatr-border\/40,
+.border-creatr-border\/60,
+.border-slate-900,
+.border-slate-800 {
+  border-color: #E6CCD5 !important;
+}
+
+/* Text coloring overrides - high contrast beautiful dark plum / mauve instead of cream and light beige */
+.text-\[\#FAF7F2\],
+.text-\[\#FAF7F2\]\/80,
+.text-white,
+.text-slate-100,
+.text-slate-200,
+.text-slate-300,
+#app-root-container,
+h1, h2, h3, h4, h5, h6 {
+  color: #381B26 !important; /* Rich contrast brand typography */
+}
+
+/* Secondary font color rules */
+.text-\[\#C7BDB3\],
+.text-slate-400 {
+  color: #4C303E !important; /* highly legible dark slate mauve text */
+}
+
+/* Dimmer text, descriptors and status codes */
+.text-\[\#8C7D6C\],
+.text-slate-500,
+.text-gray-500,
+.text-[#8C7D6C] {
+  color: #5F4250 !important; /* highly readable rich dark descriptors text */
+}
+
+/* Highlight variables labels */
+.text-creatr-pink {
+  color: #D33671 !important; /* premium energetic rose pink for high contrast on light backgrounds */
+}
+
+/* Ensure emerald/green badges are fully visible and dark emerald */
+.text-emerald-400,
+.text-emerald-500,
+.text-green-400 {
+  color: #115E2E !important; /* dark readable forest green font */
+}
+.bg-emerald-500\/10 {
+  background-color: #D8F3E5 !important; /* legible mint container */
+}
+
+/* Ensure helper warning/amber elements are readable */
+.text-\[\#E9BC6B\],
+.text-amber-400,
+.text-yellow-400 {
+  color: #854D0E !important; /* rich brand bronze warning text */
+}
+.border-\[\#E9BC6B\]\/20 {
+  border-color: #FDDF9D !important;
+}
+
+/* Specific button styles override for active menu dispatch contrast */
+#btn-mobile-menu,
+#btn-refresh-telemetry,
+.hover\:text-\[\#FAF7F2\]:hover {
+  color: #381B26 !important;
+}
+
+/* Correct visual shadows for light mode integration */
+.shadow-xl, .shadow-lg, .shadow-md {
+  box-shadow: 0 10px 25px -5px rgba(56, 27, 38, 0.05), 0 8px 10px -6px rgba(56, 27, 38, 0.05) !important;
+}

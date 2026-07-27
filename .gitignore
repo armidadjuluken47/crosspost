@@ -1,0 +1,17 @@
+node_modules
+.next
+dist
+.turbo
+.crosspost-storage
+.env
+.env.local
+secrets/
+*.log
+.DS_Store
+coverage
+drizzle/meta
+
+# Local generated/demo assets
+apps/web/.amve-storage/
+# Local Firebase admin key
+service-account.json

@@ -1,0 +1,6 @@
+{
+  "name": "Creatr AI Motion Video Engine Dashboard",
+  "description": "Enterprise-grade content operator dashboard for Creatr's automated AI Motion Video Engine. Register models, ingest Instagram reels, build batch combinations, trace face-swaps, and resolve exceptions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

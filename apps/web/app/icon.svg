@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <defs>
+    <linearGradient id="crosspost-icon-gradient" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f487b7" />
+      <stop offset="0.55" stop-color="#e1757b" />
+      <stop offset="1" stop-color="#c28e2e" />
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="34" height="34" rx="10" fill="url(#crosspost-icon-gradient)" />
+  <path
+    d="M10.5 25.5L25.5 10.5"
+    stroke="#fff"
+    stroke-width="2.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M19.5 10.5H25.5V16.5"
+    stroke="#fff"
+    stroke-width="2.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M10.5 10.5L25.5 25.5"
+    stroke="#fff"
+    stroke-width="2.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.75"
+  />
+  <path
+    d="M25.5 19.5V25.5H19.5"
+    stroke="#fff"
+    stroke-width="2.25"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.75"
+  />
+</svg>

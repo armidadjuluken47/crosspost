@@ -1,0 +1,19 @@
+{
+  "name": "crosspost-ai",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @crosspost/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "db:generate": "pnpm --filter @crosspost/db generate",
+    "db:migrate": "pnpm --filter @crosspost/db migrate",
+    "db:seed": "pnpm --filter @crosspost/db seed",
+    "worker:dev": "pnpm --filter @crosspost/worker dev",
+    "worker:run-once": "pnpm --filter @crosspost/worker run-once"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
