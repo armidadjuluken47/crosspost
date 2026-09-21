@@ -27,11 +27,64 @@ Project canvas → **+ New** → **Database** → **PostgreSQL**
 
 Copy `DATABASE_URL` into **both** web and worker (or use `${{Postgres.DATABASE_URL}}`).
 
-After first deploy:
+### Option B — Migrate via Railway shell (recommended)
+
+Use the **internal** Postgres URL (`postgres.railway.internal`) — it works inside Railway.
+
+**Prerequisites**
+
+1. **web** service has deployed successfully at least once (green build)
+2. **web** → **Variables** includes:
+   ```env
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   ```
+3. Postgres service is in the **same Railway project**
+
+**Steps**
+
+1. Open **web** service (not worker — either works, web is fine)
+2. Wait until the latest deploy is **Active / Running**
+3. Open **Shell** (top tabs: Deployments · **Shell** · Settings · …)
+4. Run from repo root (`/app`):
+   ```bash
+   corepack pnpm db:setup
+   ```
+   Or separately:
+   ```bash
+   corepack pnpm db:migrate
+   corepack pnpm db:seed
+   ```
+5. Expect output:
+   ```
+   Migrations applied
+   Seed complete (or similar)
+   ```
+
+**One-off command (alternative to Shell tab)**
+
+Some Railway layouts use **Settings → Deploy → One-off command** or run from the CLI.
+If available, use the same command:
+```bash
+corepack pnpm db:setup
+```
+
+**Troubleshooting**
+
+| Error | Fix |
+|-------|-----|
+| `DATABASE_URL is required` | Add `${{Postgres.DATABASE_URL}}` to web Variables → redeploy → retry shell |
+| `getaddrinfo ENOTFOUND postgres.railway.internal` | Postgres not linked to same project, or shell opened on wrong service |
+| `pnpm: command not found` | Run `corepack enable` first, or redeploy web so deps are installed |
+| Migrations folder missing | Shell must run after a successful build (not on empty container) |
+
+**Do not** run migrate from your laptop with the internal URL — it only resolves inside Railway.
+
+### Option A — Migrate from your laptop
+
+Use the **public** URL from Postgres → **Connect** tab (`*.proxy.rlwy.net`):
 
 ```bash
-DATABASE_URL="..." corepack pnpm db:migrate
-DATABASE_URL="..." corepack pnpm db:seed
+DATABASE_URL="postgresql://postgres:...@...proxy.rlwy.net:PORT/railway" corepack pnpm db:setup
 ```
 
 ## 3. Web service (`@crosspost/web`)

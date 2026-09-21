@@ -13,6 +13,7 @@
     "db:generate": "pnpm --filter @crosspost/db generate",
     "db:migrate": "pnpm --filter @crosspost/db migrate",
     "db:seed": "pnpm --filter @crosspost/db seed",
+    "db:setup": "pnpm db:migrate && pnpm db:seed",
     "worker:dev": "pnpm --filter @crosspost/worker dev",
     "worker:run-once": "pnpm --filter @crosspost/worker run-once"
   },
