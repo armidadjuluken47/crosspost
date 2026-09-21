@@ -9,8 +9,19 @@ import {
 import { getDb } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
 
-function redirectToAccount(request: NextRequest, params: Record<string, string>) {
-  const url = new URL("/account", request.url);
+function resolveAppBase(request: NextRequest, appBaseUrl?: string): string {
+  const configured = appBaseUrl?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+
+  const proto = request.headers.get("x-forwarded-proto");
+  const host = request.headers.get("x-forwarded-host");
+  if (proto && host) return `${proto}://${host}`.replace(/\/$/, "");
+
+  return request.nextUrl.origin.replace(/\/$/, "");
+}
+
+function redirectToAccount(baseUrl: string, params: Record<string, string>) {
+  const url = new URL("/account", baseUrl);
   for (const [key, value] of Object.entries(params)) {
     url.searchParams.set(key, value);
   }
@@ -21,28 +32,30 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ platform: string }> },
 ) {
+  const env = getServerEnv();
+  const appBase = resolveAppBase(request, env.APP_BASE_URL);
+
   const { platform } = await params;
   if (!isSocialPlatform(platform)) {
-    return redirectToAccount(request, { social_error: "unsupported_platform" });
+    return redirectToAccount(appBase, { social_error: "unsupported_platform" });
   }
 
   const searchParams = request.nextUrl.searchParams;
   const oauthError = searchParams.get("error");
   if (oauthError) {
-    return redirectToAccount(request, { social_error: oauthError });
+    return redirectToAccount(appBase, { social_error: oauthError });
   }
 
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   if (!code || !state) {
-    return redirectToAccount(request, { social_error: "missing_code" });
+    return redirectToAccount(appBase, { social_error: "missing_code" });
   }
 
   try {
-    const env = getServerEnv();
     const parsed = verifyOAuthState(env, state);
     if (!parsed) {
-      return redirectToAccount(request, { social_error: "invalid_state" });
+      return redirectToAccount(appBase, { social_error: "invalid_state" });
     }
 
     const redirectUri = socialRedirectUri(env, platform);
@@ -56,9 +69,9 @@ export async function GET(
       info,
     });
 
-    return redirectToAccount(request, { connected: platform });
+    return redirectToAccount(appBase, { connected: platform });
   } catch (error) {
     console.error(`[social-callback] ${platform} failed:`, error);
-    return redirectToAccount(request, { social_error: "connection_failed" });
+    return redirectToAccount(appBase, { social_error: "connection_failed" });
   }
 }
