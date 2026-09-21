@@ -1,0 +1,11 @@
+# CrossPost web (Next.js) — point Railway service Settings → Config file to:
+# /railway.web.toml
+
+[build]
+builder = "nixpacks"
+buildCommand = "corepack enable && corepack pnpm install && corepack pnpm build:web"
+
+[deploy]
+startCommand = "corepack pnpm start:web"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10

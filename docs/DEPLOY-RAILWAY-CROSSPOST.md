@@ -11,28 +11,45 @@ Three services from the GitHub repo `armidadjuluken47/crosspost`:
 ## 1. Create the Railway project
 
 1. [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo** → `crosspost`
-2. Add **PostgreSQL** (Variables tab → `DATABASE_URL` is auto-created)
-3. Duplicate the repo service into a second service named **worker** (same repo, different start command)
+2. Railway may **auto-detect** `@crosspost/web` and `@crosspost/worker` from the pnpm monorepo — if so, rename them **web** and **worker**
+3. If only one service is created, **Add Service** → same GitHub repo again for the second
+4. Add **PostgreSQL** (Variables tab → `DATABASE_URL` is auto-created)
 
-## 2. Web service settings
+## 2. Web service (easy config)
 
 | Setting | Value |
 |---------|--------|
 | Root directory | `/` (repo root) |
-| Build command | `corepack enable && corepack pnpm install && corepack pnpm --filter @crosspost/web build` |
-| Start command | `corepack pnpm --filter @crosspost/web start` |
+| **Config file** | `/railway.web.toml` |
 
-Railway sets `PORT` automatically; Next.js reads it.
+That file sets build + start automatically. No manual commands needed.
 
-## 3. Worker service settings
+**Watch paths** (optional, avoids rebuilds when worker changes):
+
+```
+/apps/web/**
+/packages/**
+/railway.web.toml
+/nixpacks.toml
+```
+
+## 3. Worker service (easy config)
 
 | Setting | Value |
 |---------|--------|
 | Root directory | `/` |
-| Build command | `corepack enable && corepack pnpm install && corepack pnpm --filter @crosspost/worker build` |
-| Start command | `corepack pnpm --filter @crosspost/worker start` |
+| **Config file** | `/railway.worker.toml` |
 
-Use the **same environment variables** as web.
+**Watch paths** (optional):
+
+```
+/apps/worker/**
+/packages/**
+/railway.worker.toml
+/nixpacks.toml
+```
+
+Use the **same environment variables** on web and worker.
 
 ## 4. Required production env vars
 

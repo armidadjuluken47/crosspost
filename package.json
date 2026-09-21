@@ -4,6 +4,10 @@
   "scripts": {
     "dev": "pnpm --filter @crosspost/web dev",
     "build": "pnpm -r build",
+    "build:web": "pnpm --filter @crosspost/web build",
+    "start:web": "pnpm --filter @crosspost/web start",
+    "build:worker": "pnpm --filter @crosspost/worker build",
+    "start:worker": "pnpm --filter @crosspost/worker start",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "db:generate": "pnpm --filter @crosspost/db generate",

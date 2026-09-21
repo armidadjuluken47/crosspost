@@ -1,0 +1,11 @@
+# CrossPost worker — point Railway service Settings → Config file to:
+# /railway.worker.toml
+
+[build]
+builder = "nixpacks"
+buildCommand = "corepack enable && corepack pnpm install && corepack pnpm build:worker"
+
+[deploy]
+startCommand = "corepack pnpm start:worker"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
