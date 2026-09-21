@@ -6,10 +6,16 @@ import { resolve } from "node:path";
 // Never let .env override NODE_ENV — that breaks `next build` (404 / Html prerender error).
 const nodeEnv = process.env.NODE_ENV;
 loadEnv({ path: resolve(process.cwd(), "../../.env"), override: true });
-if (nodeEnv) process.env.NODE_ENV = nodeEnv;
+if (nodeEnv !== undefined) {
+  Object.defineProperty(process.env, "NODE_ENV", {
+    value: nodeEnv,
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
+}
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   transpilePackages: ["@crosspost/shared", "@crosspost/db", "@crosspost/pipeline", "@crosspost/content-ai"],
   outputFileTracingRoot: resolve(process.cwd(), "../.."),
   env: {
