@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "22"
+  },
+  "buildAptPackages": ["ffmpeg"],
+  "steps": {
+    "build": {
+      "commands": [
+        "corepack enable",
+        "corepack pnpm install",
+        "corepack pnpm build:worker"
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "corepack pnpm start:worker"
+  }
+}

@@ -17,12 +17,15 @@ Three services from the GitHub repo `armidadjuluken47/crosspost`:
 
 ## 2. Web service (easy config)
 
+Railway now uses **Railpack** by default (not Nixpacks). Without a config file it
+mis-detects the pnpm monorepo and fails.
+
 | Setting | Value |
 |---------|--------|
 | Root directory | `/` (repo root) |
-| **Config file** | `/railway.web.toml` |
+| **Variable** | `RAILPACK_CONFIG_FILE` = `railpack.web.json` |
 
-That file sets build + start automatically. No manual commands needed.
+Optional fallback: Settings → Builder → **Nixpacks**, Config file = `/railway.web.toml`
 
 **Watch paths** (optional, avoids rebuilds when worker changes):
 
@@ -35,10 +38,12 @@ That file sets build + start automatically. No manual commands needed.
 
 ## 3. Worker service (easy config)
 
+**Add a second service:** Project canvas → **+ New** → **GitHub Repo** → same `crosspost` repo.
+
 | Setting | Value |
 |---------|--------|
 | Root directory | `/` |
-| **Config file** | `/railway.worker.toml` |
+| **Variable** | `RAILPACK_CONFIG_FILE` = `railpack.worker.json` |
 
 **Watch paths** (optional):
 
