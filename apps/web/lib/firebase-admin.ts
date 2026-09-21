@@ -8,6 +8,16 @@ const databaseId =
   (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId || "(default)";
 
 function loadServiceAccount(): admin.ServiceAccount | undefined {
+  const base64 = process.env.FIREBASE_SA_JSON_BASE64?.trim();
+  if (base64) {
+    try {
+      return JSON.parse(Buffer.from(base64, "base64").toString("utf8")) as admin.ServiceAccount;
+    } catch {
+      console.warn("FIREBASE_SA_JSON_BASE64 is invalid JSON");
+      return undefined;
+    }
+  }
+
   const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (!credPath) return undefined;
 

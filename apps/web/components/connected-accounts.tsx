@@ -106,7 +106,10 @@ export function ConnectedAccounts() {
   }
 
   const visiblePlatforms = PLATFORMS.filter(
-    (platform) => available[platform] || connections.some((c) => c.platform === platform),
+    (platform) =>
+      platform === "instagram" ||
+      available[platform] ||
+      connections.some((c) => c.platform === platform),
   );
 
   // Hide the whole card when nothing is configured and nothing connected.
@@ -123,8 +126,7 @@ export function ConnectedAccounts() {
         <h3 className="cp-display text-lg font-semibold text-cp-ink">Auto-post destinations</h3>
         <p className="text-xs leading-relaxed text-cp-muted">
           Connect the accounts you want to publish finished videos to. YouTube defaults to private;
-          TikTok sends an inbox draft; Instagram posts a Reel (Professional account + Facebook Page
-          required).
+          TikTok sends an inbox draft. Instagram Reels posting is coming soon.
         </p>
       </div>
 
@@ -152,14 +154,20 @@ export function ConnectedAccounts() {
                       {SOCIAL_LABELS[platform]}
                     </span>
                     <span className="mt-0.5 block text-[11px] text-cp-muted">
-                      {connection
-                        ? `Connected as ${connection.accountLabel || connection.accountRef}`
-                        : "Not connected"}
+                      {platform === "instagram" && !available.instagram
+                        ? "Reels auto-post — coming soon"
+                        : connection
+                          ? `Connected as ${connection.accountLabel || connection.accountRef}`
+                          : "Not connected"}
                     </span>
                   </div>
                 </div>
 
-                {connection ? (
+                {platform === "instagram" && !available.instagram ? (
+                  <span className="rounded-xl border border-cp-line bg-cp-card px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-cp-muted">
+                    Coming soon
+                  </span>
+                ) : connection ? (
                   <button
                     type="button"
                     onClick={() => disconnect(connection.publicId)}

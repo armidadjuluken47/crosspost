@@ -3,9 +3,13 @@ import { config as loadEnv } from "dotenv";
 import { resolve } from "node:path";
 
 // Prefer monorepo .env over stale shell exports (e.g. old Stripe prod_ IDs).
+// Never let .env override NODE_ENV — that breaks `next build` (404 / Html prerender error).
+const nodeEnv = process.env.NODE_ENV;
 loadEnv({ path: resolve(process.cwd(), "../../.env"), override: true });
+if (nodeEnv) process.env.NODE_ENV = nodeEnv;
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   transpilePackages: ["@crosspost/shared", "@crosspost/db", "@crosspost/pipeline", "@crosspost/content-ai"],
   outputFileTracingRoot: resolve(process.cwd(), "../.."),
   env: {

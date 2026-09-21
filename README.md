@@ -55,8 +55,9 @@ crosspost-ai/
 - [x] Pipeline wired to creator flow (WaveSpeed + optional captions)
 - [x] Firebase Google auth + Stripe billing
 - [x] Ops admin at `/admin`
-- [x] Auto-post: YouTube (private) + TikTok (inbox draft) + Instagram Reels
-- [ ] Production deploy handoff (Railway) — see Flippa checklist
+- [x] Auto-post: YouTube (private) + TikTok (inbox draft)
+- [ ] Auto-post: Instagram Reels (coming soon — Meta Login / App Review)
+- [ ] Production deploy (Railway) — see [docs/DEPLOY-RAILWAY-CROSSPOST.md](./docs/DEPLOY-RAILWAY-CROSSPOST.md)
 - [ ] Facebook Page feed / Stories / scheduling / auto-post-on-ready (deferred)
 
 ## Local dev notes
@@ -67,7 +68,7 @@ crosspost-ai/
 - Leave `DASHBOARD_PASSWORD` empty for fully open local dev.
 - For reliable queues in production: `RUN_EXECUTION_MODE=queued` + `pnpm worker:dev`.
 
-## Auto-post to social (YouTube + TikTok + Instagram Reels)
+## Auto-post to social (YouTube + TikTok; Instagram coming soon)
 
 Creators can publish a finished (`ready`) project's video straight to their own
 connected YouTube, TikTok, or Instagram accounts from the project page ("Post to social").
@@ -83,7 +84,7 @@ appears once its credentials **and** `SOCIAL_TOKEN_ENC_KEY` are present.
 |---|---|
 | `YOUTUBE_OAUTH_CLIENT_ID` / `YOUTUBE_OAUTH_CLIENT_SECRET` | Google OAuth client (YouTube Data API v3) |
 | `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | TikTok developer app |
-| `META_APP_ID` / `META_APP_SECRET` | Meta app (Facebook Login + Instagram Graph for Reels) |
+| `META_APP_ID` / `META_APP_SECRET` | Meta app (Instagram Login / Instagram Graph for Reels) |
 | `SOCIAL_TOKEN_ENC_KEY` | base64-encoded 32-byte key; encrypts OAuth tokens at rest (AES-256-GCM) and signs OAuth `state` |
 | `APP_BASE_URL` | Used to build OAuth redirect URIs |
 
@@ -103,12 +104,12 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
   *Login Kit* products. Add the redirect URI
   `{APP_BASE_URL}/api/creator/social/tiktok/callback`. Scopes used:
   `user.info.basic`, `video.upload`.
-- **Meta for Developers** → create an app, add *Facebook Login* + *Instagram Graph*.
-  Redirect URI: `{APP_BASE_URL}/api/creator/social/instagram/callback`.
-  Scopes: `instagram_basic`, `instagram_content_publish`, `pages_show_list`,
-  `pages_read_engagement`. The Instagram account must be **Professional**
-  (Business/Creator) and linked to a **Facebook Page**. Until App Review, only
-  Meta testers/admins can connect.
+- **Meta for Developers** → create an app, add **Instagram** (API with Instagram Login).
+  Redirect URI (Instagram → API setup → OAuth redirect URIs):
+  `{APP_BASE_URL}/api/creator/social/instagram/callback`.
+  Scopes: `instagram_business_basic`, `instagram_business_content_publish`.
+  Account must be **Instagram Business** (Creator accounts cannot publish via API).
+  Until App Review, only Meta testers/admins can connect.
 
 ### 3. Behaviour & defaults (compliance)
 
@@ -119,9 +120,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
   The creator finishes the post and sets the required **AI-generated content** label
   in the TikTok app. In the product UI this shows as **Sent to inbox** (not a public
   profile post). This path works for unaudited apps and keeps the human in the loop.
-- **Instagram** publishes a **Reel** via Graph (`media_type=REELS` → poll → `media_publish`).
-  Requires a **public HTTPS video URL** (R2). Personal IG accounts are not supported
-  by Meta's API — only Professional accounts linked to a Page.
+- **Instagram** publishes a **Reel** via `graph.instagram.com`
+  (`media_type=REELS` → poll → `media_publish`). Requires a **public HTTPS video URL**
+  (R2). Personal/Creator IG accounts are not supported for API publish — Business only.
 - OAuth tokens are stored **encrypted** (AES-256-GCM); the callback carries identity
   via an **HMAC-signed, short-lived `state`** rather than a session cookie.
 - Publishing runs asynchronously. In `RUN_EXECUTION_MODE=queued` the worker

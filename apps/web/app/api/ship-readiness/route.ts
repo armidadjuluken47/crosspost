@@ -44,7 +44,13 @@ export async function GET() {
 
   const blocking: string[] = [];
   if (!checks.database) blocking.push("DATABASE_URL");
-  if (!checks.firebaseAdmin) blocking.push("GOOGLE_APPLICATION_CREDENTIALS");
+  if (!checks.firebaseAdmin) {
+    blocking.push(
+      process.env.FIREBASE_SA_JSON_BASE64?.trim()
+        ? "FIREBASE_SA_JSON_BASE64"
+        : "GOOGLE_APPLICATION_CREDENTIALS",
+    );
+  }
   if (!checks.wavespeed && checks.videoLive) blocking.push("WAVESPEED_API_KEY");
   if (!checks.r2) blocking.push("R2_*");
   if (!checks.apify && checks.ingestionLive) blocking.push("APIFY_TOKEN");

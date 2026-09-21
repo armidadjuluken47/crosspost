@@ -8,15 +8,18 @@ import {
   type SocialPublisher,
 } from "./types";
 
+/**
+ * Instagram API with Instagram Login (Business Login).
+ * Old Facebook-Login scopes (`instagram_basic`, etc.) are rejected by Meta;
+ * use `instagram_business_*` + graph.instagram.com instead.
+ */
 const GRAPH_VERSION = "v21.0";
-const GRAPH = `https://graph.facebook.com/${GRAPH_VERSION}`;
-const AUTHORIZE_URL = `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`;
-const SCOPES = [
-  "instagram_basic",
-  "instagram_content_publish",
-  "pages_show_list",
-  "pages_read_engagement",
-].join(",");
+const GRAPH = `https://graph.instagram.com/${GRAPH_VERSION}`;
+const AUTHORIZE_URL = "https://www.instagram.com/oauth/authorize";
+const SHORT_TOKEN_URL = "https://api.instagram.com/oauth/access_token";
+const LONG_TOKEN_URL = "https://graph.instagram.com/access_token";
+const REFRESH_TOKEN_URL = "https://graph.instagram.com/refresh_access_token";
+const SCOPES = ["instagram_business_basic", "instagram_business_content_publish"].join(",");
 const EXPIRY_SKEW_MS = 5 * 60 * 1000;
 const CONTAINER_POLL_MS = 3000;
 const CONTAINER_MAX_POLLS = 60;
@@ -37,51 +40,74 @@ function sleep(ms: number) {
 type TokenJson = {
   access_token?: string;
   expires_in?: number;
-  error?: { message?: string; type?: string };
+  user_id?: string | number;
+  permissions?: string | string[];
+  error?: { message?: string; type?: string } | string;
+  error_message?: string;
+  data?: Array<{
+    access_token?: string;
+    user_id?: string | number;
+    permissions?: string | string[];
+  }>;
 };
 
-async function exchangeCode(
+function tokenErrorMessage(data: TokenJson, fallback: string | number): string {
+  if (typeof data.error === "string") return data.error;
+  if (data.error?.message) return data.error.message;
+  if (data.error_message) return data.error_message;
+  return String(fallback);
+}
+
+async function exchangeCodeForShortLivedToken(
   env: AppEnv,
   code: string,
   redirectUri: string,
-): Promise<{ accessToken: string; expiresAt: Date | null }> {
+): Promise<{ accessToken: string; userId: string; permissions: string }> {
   const { appId, appSecret } = requireCredentials(env);
-  const url = new URL(`${GRAPH}/oauth/access_token`);
-  url.searchParams.set("client_id", appId);
-  url.searchParams.set("client_secret", appSecret);
-  url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("code", code);
-
-  const response = await fetch(url);
+  const response = await fetch(SHORT_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: appId,
+      client_secret: appSecret,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+      code,
+    }),
+  });
   const data = (await response.json()) as TokenJson;
-  if (!response.ok || !data.access_token) {
+  const row = data.data?.[0] ?? data;
+  if (!response.ok || !row.access_token) {
     throw new SocialPublishError(
-      `Instagram code exchange failed: ${data.error?.message ?? response.status}`,
+      `Instagram code exchange failed: ${tokenErrorMessage(data, response.status)}`,
       "instagram",
     );
   }
+  const permissions = Array.isArray(row.permissions)
+    ? row.permissions.join(",")
+    : (row.permissions ?? SCOPES);
   return {
-    accessToken: data.access_token,
-    expiresAt: data.expires_in ? new Date(Date.now() + data.expires_in * 1000) : null,
+    accessToken: row.access_token,
+    userId: row.user_id != null ? String(row.user_id) : "unknown",
+    permissions,
   };
 }
 
-async function exchangeLongLivedUserToken(
+async function exchangeLongLivedToken(
   env: AppEnv,
   shortLivedToken: string,
 ): Promise<{ accessToken: string; expiresAt: Date | null }> {
-  const { appId, appSecret } = requireCredentials(env);
-  const url = new URL(`${GRAPH}/oauth/access_token`);
-  url.searchParams.set("grant_type", "fb_exchange_token");
-  url.searchParams.set("client_id", appId);
+  const { appSecret } = requireCredentials(env);
+  const url = new URL(LONG_TOKEN_URL);
+  url.searchParams.set("grant_type", "ig_exchange_token");
   url.searchParams.set("client_secret", appSecret);
-  url.searchParams.set("fb_exchange_token", shortLivedToken);
+  url.searchParams.set("access_token", shortLivedToken);
 
   const response = await fetch(url);
   const data = (await response.json()) as TokenJson;
   if (!response.ok || !data.access_token) {
     throw new SocialPublishError(
-      `Instagram long-lived token exchange failed: ${data.error?.message ?? response.status}`,
+      `Instagram long-lived token exchange failed: ${tokenErrorMessage(data, response.status)}`,
       "instagram",
       response.status >= 500,
     );
@@ -92,61 +118,54 @@ async function exchangeLongLivedUserToken(
   };
 }
 
-type PageRow = {
-  id?: string;
-  name?: string;
-  access_token?: string;
-  instagram_business_account?: { id?: string; username?: string };
-};
+async function refreshLongLivedToken(
+  longLivedToken: string,
+): Promise<{ accessToken: string; expiresAt: Date | null }> {
+  const url = new URL(REFRESH_TOKEN_URL);
+  url.searchParams.set("grant_type", "ig_refresh_token");
+  url.searchParams.set("access_token", longLivedToken);
 
-async function findInstagramBusinessAccount(
-  userAccessToken: string,
-): Promise<{
-  igUserId: string;
-  username: string;
-  pageId: string;
-  pageName: string;
-  pageAccessToken: string;
-}> {
-  const url = new URL(`${GRAPH}/me/accounts`);
-  url.searchParams.set(
-    "fields",
-    "id,name,access_token,instagram_business_account{id,username}",
-  );
-  url.searchParams.set("access_token", userAccessToken);
+  const response = await fetch(url);
+  const data = (await response.json()) as TokenJson;
+  if (!response.ok || !data.access_token) {
+    throw new SocialPublishError(
+      `Instagram token refresh failed: ${tokenErrorMessage(data, response.status)}`,
+      "instagram",
+      response.status >= 500,
+    );
+  }
+  return {
+    accessToken: data.access_token,
+    expiresAt: data.expires_in ? new Date(Date.now() + data.expires_in * 1000) : null,
+  };
+}
+
+async function fetchIgProfile(
+  accessToken: string,
+  fallbackUserId: string,
+): Promise<{ igUserId: string; username: string }> {
+  const url = new URL(`${GRAPH}/me`);
+  url.searchParams.set("fields", "user_id,username");
+  url.searchParams.set("access_token", accessToken);
 
   const response = await fetch(url);
   const data = (await response.json()) as {
-    data?: PageRow[];
+    user_id?: string | number;
+    id?: string | number;
+    username?: string;
     error?: { message?: string };
   };
   if (!response.ok) {
     throw new SocialPublishError(
-      `Instagram pages lookup failed: ${data.error?.message ?? response.status}`,
+      `Instagram profile lookup failed: ${data.error?.message ?? response.status}`,
       "instagram",
     );
   }
 
-  const withIg = (data.data ?? []).filter(
-    (page) => page.instagram_business_account?.id && page.access_token,
-  );
-  if (withIg.length === 0) {
-    throw new SocialPublishError(
-      "No Instagram Professional account linked to a Facebook Page was found. " +
-        "Switch the IG account to Business/Creator and link a Page, then reconnect.",
-      "instagram",
-    );
-  }
-
-  // MVP: first linked IG Business/Creator account.
-  const page = withIg[0]!;
-  const ig = page.instagram_business_account!;
+  const igUserId = String(data.user_id ?? data.id ?? fallbackUserId);
   return {
-    igUserId: ig.id!,
-    username: ig.username ? `@${ig.username}` : "Instagram",
-    pageId: page.id!,
-    pageName: page.name ?? "Facebook Page",
-    pageAccessToken: page.access_token!,
+    igUserId,
+    username: data.username ? `@${data.username}` : "Instagram",
   };
 }
 
@@ -164,33 +183,31 @@ export const instagramOAuth: SocialOAuthAdapter = {
     return `${AUTHORIZE_URL}?${params.toString()}`;
   },
   async exchangeCode(env, code, redirectUri): Promise<SocialAccountInfo> {
-    const shortLived = await exchangeCode(env, code, redirectUri);
-    const longLived = await exchangeLongLivedUserToken(env, shortLived.accessToken);
-    const account = await findInstagramBusinessAccount(longLived.accessToken);
+    const shortLived = await exchangeCodeForShortLivedToken(env, code, redirectUri);
+    const longLived = await exchangeLongLivedToken(env, shortLived.accessToken);
+    const profile = await fetchIgProfile(longLived.accessToken, shortLived.userId);
 
     return {
-      accountRef: account.igUserId,
-      accountLabel: account.username,
-      // Page tokens derived from long-lived user tokens typically do not expire.
-      accessToken: account.pageAccessToken,
+      accountRef: profile.igUserId,
+      accountLabel: profile.username,
+      accessToken: longLived.accessToken,
+      // Keep a copy for refresh; IG refresh uses the long-lived token itself.
       refreshToken: longLived.accessToken,
-      scopes: SCOPES,
-      expiresAt: null,
+      scopes: shortLived.permissions || SCOPES,
+      expiresAt: longLived.expiresAt,
       metadata: {
-        pageId: account.pageId,
-        pageName: account.pageName,
-        igUserId: account.igUserId,
-        userTokenExpiresAt: longLived.expiresAt?.toISOString() ?? null,
+        igUserId: profile.igUserId,
+        authMode: "instagram_login",
       },
     };
   },
 };
 
-async function pollContainerReady(creationId: string, pageAccessToken: string) {
+async function pollContainerReady(creationId: string, accessToken: string) {
   for (let attempt = 0; attempt < CONTAINER_MAX_POLLS; attempt += 1) {
     const url = new URL(`${GRAPH}/${creationId}`);
     url.searchParams.set("fields", "status_code,status");
-    url.searchParams.set("access_token", pageAccessToken);
+    url.searchParams.set("access_token", accessToken);
 
     const response = await fetch(url);
     const data = (await response.json()) as {
@@ -230,24 +247,28 @@ export const instagramPublisher: SocialPublisher = {
   platform: "instagram",
 
   async refreshIfNeeded(env, connection): Promise<RefreshedToken | null> {
-    // Page tokens from a long-lived user token are effectively permanent.
-    // Refresh the user token when we have an expiry in metadata and it's near.
-    const meta = (connection.metadata ?? {}) as {
-      userTokenExpiresAt?: string | null;
-    };
-    const userExpiry = meta.userTokenExpiresAt ? new Date(meta.userTokenExpiresAt) : null;
     const stillValid =
-      !userExpiry || userExpiry.getTime() - EXPIRY_SKEW_MS > Date.now();
-    if (stillValid || !connection.refreshToken) return null;
+      connection.expiresAt && connection.expiresAt.getTime() - EXPIRY_SKEW_MS > Date.now();
+    if (stillValid) return null;
 
-    const longLived = await exchangeLongLivedUserToken(env, connection.refreshToken);
-    const account = await findInstagramBusinessAccount(longLived.accessToken);
+    const token = connection.refreshToken ?? connection.accessToken;
+    if (!token) {
+      throw new SocialPublishError(
+        "Instagram connection has no token to refresh; reconnect the account",
+        "instagram",
+      );
+    }
 
-    return {
-      accessToken: account.pageAccessToken,
-      refreshToken: longLived.accessToken,
-      expiresAt: null,
-    };
+    // Prefer IG refresh; fall back to long-lived exchange if the stored token is short-lived.
+    try {
+      return await refreshLongLivedToken(token);
+    } catch (refreshError) {
+      try {
+        return await exchangeLongLivedToken(env, token);
+      } catch {
+        throw refreshError;
+      }
+    }
   },
 
   async publish(_env, connection, input): Promise<SocialPublishResult> {

@@ -96,7 +96,11 @@ export function PostToSocial({ publicId }: { publicId: string }) {
         setConnections(conns);
         setAvailable(connData.available ?? { youtube: false, tiktok: false, instagram: false });
         setSelected(
-          new Set(conns.filter((c) => c.status === "active").map((c) => c.platform)),
+          new Set(
+            conns
+              .filter((c) => c.status === "active" && c.platform !== "instagram")
+              .map((c) => c.platform),
+          ),
         );
       } catch {
         // Non-fatal.
@@ -132,9 +136,11 @@ export function PostToSocial({ publicId }: { publicId: string }) {
   const connectedPlatforms = PLATFORMS.filter((platform) =>
     connections.some((c) => c.platform === platform && c.status === "active"),
   );
-  const configuredPlatforms = PLATFORMS.filter((platform) => available[platform]);
+  const configuredPlatforms = PLATFORMS.filter(
+    (platform) => platform === "instagram" || available[platform],
+  );
 
-  // Feature off entirely.
+  // Feature off entirely (still show when YT/TT configured, or Instagram teaser).
   if (!loading && configuredPlatforms.length === 0 && connectedPlatforms.length === 0) {
     return null;
   }
@@ -190,9 +196,8 @@ export function PostToSocial({ publicId }: { publicId: string }) {
       <p className="mb-4 text-xs leading-relaxed text-cp-muted">
         Publish this remix to your connected accounts. YouTube uploads as{" "}
         <span className="font-medium text-cp-ink">Private</span>. TikTok sends a{" "}
-        <span className="font-medium text-cp-ink">draft to your app inbox</span>. Instagram publishes
-        a <span className="font-medium text-cp-ink">Reel</span> (Professional account required; needs
-        a public video URL via R2).
+        <span className="font-medium text-cp-ink">draft to your app inbox</span>. Instagram Reels
+        posting is <span className="font-medium text-cp-ink">coming soon</span>.
       </p>
 
       {loading ? (
@@ -210,24 +215,35 @@ export function PostToSocial({ publicId }: { publicId: string }) {
               );
               const post = posts.find((p) => p.platform === platform);
               const isConnected = Boolean(connection);
+              const comingSoon = platform === "instagram" && !available.instagram;
               return (
                 <div
                   key={platform}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-cp-line bg-cp-bg p-3"
+                  className={`flex items-center justify-between gap-3 rounded-xl border border-cp-line bg-cp-bg p-3 ${
+                    comingSoon ? "opacity-70" : ""
+                  }`}
                 >
-                  <label className="flex flex-1 cursor-pointer items-center gap-3">
+                  <label
+                    className={`flex flex-1 items-center gap-3 ${
+                      comingSoon ? "cursor-default" : "cursor-pointer"
+                    }`}
+                  >
                     <input
                       type="checkbox"
-                      checked={isConnected && selected.has(platform)}
+                      checked={!comingSoon && isConnected && selected.has(platform)}
                       onChange={() => toggle(platform)}
-                      disabled={!isConnected}
+                      disabled={comingSoon || !isConnected}
                       className="h-4 w-4 accent-cp-ink"
                     />
                     <Icon className="h-5 w-5" />
                     <span className="text-sm font-medium text-cp-ink">
                       {SOCIAL_LABELS[platform]}
                     </span>
-                    {connection ? (
+                    {comingSoon ? (
+                      <span className="rounded-lg border border-cp-line bg-cp-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-cp-muted">
+                        Coming soon
+                      </span>
+                    ) : connection ? (
                       <span className="truncate text-[11px] text-cp-muted">
                         {connection.accountLabel}
                       </span>

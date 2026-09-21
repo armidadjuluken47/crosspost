@@ -137,7 +137,14 @@ export function hasTikTokOAuth(env: AppEnv): boolean {
   );
 }
 
+/**
+ * Instagram Reels auto-post is implemented, but Meta Login / App Review is still
+ * flaky for local + unaudited apps. Keep the UI as "Coming soon" until flipped on.
+ */
+export const INSTAGRAM_POSTING_ENABLED = false;
+
 export function hasInstagramOAuth(env: AppEnv): boolean {
+  if (!INSTAGRAM_POSTING_ENABLED) return false;
   return Boolean(
     env.META_APP_ID?.trim() &&
       env.META_APP_SECRET?.trim() &&

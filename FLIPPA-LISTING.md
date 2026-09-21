@@ -36,7 +36,7 @@ weekend toy.
 | Creator product | Landing → Create → Projects → Account; dark/light dashboard theme |
 | AI remix pipeline | Face refs + source video → image gen → Kling motion-control video |
 | Export pack | MP4, optional captions/hashtags/hooks, SRT, thumbnail, ZIP |
-| Auto-post | Direct YouTube (private), TikTok (inbox draft), Instagram Reels (Pro + Page) |
+| Auto-post | Direct YouTube (private), TikTok (inbox draft); Instagram Reels coming soon |
 | Billing | Stripe Checkout + Customer Portal (Free vs Creator Pro) |
 | Auth | Firebase Google sign-in |
 | Teams | Personal + agency workspaces, invites, shared quota |
@@ -119,9 +119,10 @@ Be honest: revenue depends on the buyer’s keys, ads, and niche; don’t invent
   Redirect: `{APP_BASE_URL}/api/creator/social/tiktok/callback`  
   Env: `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`  
   Add sandbox target users; uploads go to **app inbox / draft**.
-- [ ] **Instagram:** Meta for Developers → Facebook Login + Instagram Graph  
+- [ ] **Instagram (coming soon):** Meta for Developers → Instagram API with Instagram Login  
   Redirect: `{APP_BASE_URL}/api/creator/social/instagram/callback`  
-  Env: `META_APP_ID`, `META_APP_SECRET`  
+  Scopes: `instagram_business_basic`, `instagram_business_content_publish`  
+  Env: `META_APP_ID`, `META_APP_SECRET` — flip `INSTAGRAM_POSTING_ENABLED` in shared env when ready  
   Use a **Professional** IG linked to a Facebook Page; needs public R2 video URLs.
 - [ ] Confirm Account page shows Connect buttons for each configured platform
 
@@ -130,7 +131,7 @@ Be honest: revenue depends on the buyer’s keys, ads, and niche; don’t invent
 - [ ] Create remix → status `ready` → download ZIP
 - [ ] Connect YouTube → Post now → private video on channel
 - [ ] Connect TikTok → Post now → status **Sent to inbox** → finish in TikTok app
-- [ ] Connect Instagram (Pro + Page) → Post now → Reel on profile
+- [ ] Connect Instagram (Business) → Post now → Reel on profile *(coming soon)*
 - [ ] `/admin` health green / expected fixtures
 
 Full env template: [`.env.example`](./.env.example).  
@@ -142,7 +143,7 @@ Technical auto-post notes: [README — Auto-post](./README.md#auto-post-to-socia
 
 - **Not Vercel-only** — worker + FFmpeg need a long-running process (Railway/Docker).
 - **AI cost is usage-based** — WaveSpeed/OpenAI bills the operator.
-- **Platform audits** — unaudited YouTube apps force Private; TikTok uses inbox draft until Content Posting is approved for public publish; Instagram requires Professional accounts + Meta App Review for open SaaS.
+- **Platform audits** — unaudited YouTube apps force Private; TikTok uses inbox draft until Content Posting is approved for public publish; Instagram Reels auto-post is coded but marked coming soon pending Meta Login / App Review.
 - **Scheduling / auto-on-ready / Stories** — not included (architecture allows adding publishers later).
 
 ---
